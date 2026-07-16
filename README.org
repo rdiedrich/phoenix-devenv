@@ -1,0 +1,67 @@
+* Phoenix Podman Devenv
+
+A per-project Elixir/Phoenix toolchain baked into a Podman image, invoked ephemerally per command via [[https://github.com/casey/just][just]].
+
+** Prerequisites
+
+- Podman (rootless)
+- [[https://github.com/casey/just][just]]
+
+** Quick start
+
+#+begin_src sh
+just build              # build the pinned image
+just mix deps.get       # fetch deps
+just server             # run mix phx.server
+just shell              # drop into a shell
+just --list             # see all recipes
+#+end_src
+
+** Layout
+
+- =Containerfile= — pinned Elixir/OTP/Phoenix image definition
+- =justfile= — recipes for build/run/test/shell, ephemeral containers with
+  cached =_build=/=deps= volumes per project
+
+** Git workflow
+
+This repo is a *template*, not a single project. The intended flow keeps
+project-specific work and shared tooling improvements separate.
+
+*** Starting a new Phoenix project from this template
+
+1. Fork [[https://github.com/rdiedrich/phoenix-devenv/]] into a new repo for
+   your project.
+2. Clone your fork; this becomes your project's repo.
+3. Pin =elixir_ver=, =otp_ver=, and =phoenix_ver= in the =justfile= to what
+   the project needs.
+4. =just build= then =just mix phx.new .= to scaffold (or add existing
+   Phoenix source directly).
+5. Commit and push to your fork as normal — this history is yours, it never
+   goes back upstream.
+
+*** Sending tooling fixes back upstream
+
+If you fix a bug or add a recipe in =Containerfile=/=justfile= that isn't
+project-specific (i.e. not just a version bump), send it back so other
+projects benefit:
+
+#+begin_src sh
+git remote add upstream https://github.com/rdiedrich/phoenix-devenv.git
+# make the change, commit it
+git push origin your-branch
+# open a PR from your-branch against upstream main,
+# scoped to Containerfile/justfile only
+#+end_src
+
+*** Pulling upstream tooling updates into your project fork
+
+#+begin_src sh
+git fetch upstream
+git checkout upstream/main -- Containerfile justfile
+git diff --staged   # review before committing
+git commit -m "Sync devenv tooling from upstream"
+#+end_src
+
+This pulls in just the two tooling files without touching your project's
+own history or version pins.
